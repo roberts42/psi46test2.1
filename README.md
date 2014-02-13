@@ -1,4 +1,3 @@
-psi46test README
 ====================================================================
 
 *NOTE: Do not forget to read the Changelog.txt file as well for latest

@@ -11,9 +11,10 @@
 class DataPipeException : public std::exception
 {
 public:
-	DataPipeException(const char *message) : std::exception(message) {};
-};
+	DataPipeException(const char *message) : std::exception() {};
+	//DataPipeException(const char *message) : std::exception(message) {};
 
+};
 
 class DP_not_connected : public DataPipeException
 {

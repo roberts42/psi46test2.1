@@ -115,7 +115,27 @@ void CTestboard::Close()
 {
 //	if (usb.Connected()) Daq_Close();
 	usb.Close();
-	rpc_Clear();
+	Clear();
+}
+
+int32_t CTestboard::ChipThreshold(int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t xtalk, int32_t cals, int32_t res[])
+{
+	vectorR<int32_t> res_v;
+		
+//	for(int i = 0; i < ROC_NUMROWS * ROC_NUMCOLS; i++) 
+//	{
+//	 res_v.push_back(res[i]);
+//	}
+	int32_t val = ChipThresholdConvert(start, step, thrLevel, nTrig, dacReg, xtalk, cals, res_v);
+
+		
+	res[0] = res_v.at(0);
+	printf("res = %d \n",res[0]);
+
+//	for (int i = 0; i < ROC_NUMROWS * ROC_NUMCOLS; i++) trim[i] = trim_v.at(i);
+	for (int i = 0; i < ROC_NUMROWS * ROC_NUMCOLS; i++) res[i] = res_v.at(i);
+
+	return val;
 }
 
 

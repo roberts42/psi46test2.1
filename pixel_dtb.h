@@ -343,7 +343,26 @@ public:
 
 //	RPC_EXPORT bool tbm_GetRaw(uint8_t reg, uint32_t &value);
 
-// --- Wafer test functions
+// --- ROC test functions
+
+	RPC_EXPORT void SetPixelAddressInverted(bool status);
+
+	RPC_EXPORT int32_t CountReadouts(int32_t nTriggers);
+	RPC_EXPORT int32_t CountReadouts(int32_t nTriggers, int32_t chipId);
+	RPC_EXPORT int32_t CountReadouts(int32_t nTriggers, int32_t dacReg, int32_t dacValue);
+	//RPC_EXPORT uint8_t DacDac_dtb(vectorR<uint16_t> &res, int32_t dac1, int32_t dacRange1, int32_t dac2, int32_t dacRange2, int32_t nTrig);
+	RPC_EXPORT int32_t PH(int32_t col, int32_t row, int32_t trim, int16_t nTriggers);
+	//int32_t ThresholdBinary(int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t dacMin, int32_t dacMax, bool reverseMode);
+	int32_t Threshold(int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg);
+	//bool FindReadout(int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t &dacMin, int32_t &dacMax, bool reverseMode);
+	RPC_EXPORT int32_t PixelThreshold(int32_t col, int32_t row, int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t xtalk, int32_t cals, int32_t trim);
+	RPC_EXPORT bool test_pixel_address(int32_t col, int32_t row);
+	//RPC_EXPORT int32_t ChipEfficiency(int16_t nTriggers, vectorR<uint8_t> &res);
+
+	int32_t ChipThreshold(int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t xtalk, int32_t cals, int32_t res[]);
+        RPC_EXPORT int32_t ChipThresholdConvert(int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, bool xtalk, bool cals, vectorR<int32_t> &res);
+
+	// Wafer test functions
 	RPC_EXPORT bool TestColPixel(uint8_t col, uint8_t trimbit, vectorR<uint8_t> &res);
 
 	// Ethernet test functions
