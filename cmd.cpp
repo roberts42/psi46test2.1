@@ -1029,7 +1029,7 @@ CMD_PROC(dread400) // for modules
  return true;
 }
 
-int ParseData(vectorR<uint16_t> & data, vectorR<int> & v_roc, vectorR<int> & v_x, vectorR<int> & v_y, vectorR<int> & v_ph)
+int ParseData(vectorR<uint16_t> & data, int tbmch, vectorR<int> & v_roc, vectorR<int> & v_x, vectorR<int> & v_y, vectorR<int> & v_ph)
 {
 
  unsigned int hdr = 0, trl = 0;
@@ -1054,9 +1054,10 @@ int ParseData(vectorR<uint16_t> & data, vectorR<int> & v_roc, vectorR<int> & v_x
      case  6: printf(" R6(%1X)", d);   raw = (raw<<4) + d;
 	printf(" Raw: %X",raw);
         DecodePixel(raw,x,y,ph);
-        v_roc.push_back(iroc);
+        v_roc.push_back(tbmch?iroc+7:iroc-1);
         v_x.push_back(x);
         v_y.push_back(y);
+        v_ph.push_back(ph);
         break;
 
      case  7: printf("\n%2i. ROC-HD(%1X): ", iroc, d); iroc++; break;
@@ -1129,7 +1130,7 @@ CMD_PROC(errortest)
 
         std::vectorR<int> iroc, row, col, ph;
 
-        uint16_t num = ParseData(data,iroc,row,col,ph);
+        uint16_t num = ParseData(data,1,iroc,row,col,ph);
 
         cout << "parsed " << num <<endl;
 
@@ -1178,6 +1179,9 @@ CMD_PROC(modalive)
  int npx[16] = {0};
  std::vectorR<int> iroc, row_v, col_v, ph;
 
+ tb.Daq_Select_Deser400();
+ tb.Daq_Deser400_Reset(3);
+
  for( size_t roc = 0; roc < 16; ++roc ) {
 
  //  if( roclist[roc] == 0 ) continue;
@@ -1216,8 +1220,8 @@ CMD_PROC(modalive)
      tb.Daq_Read( data, 32000, remaining, tbmch );
 
 
-     uint16_t num = ParseData(data,iroc,row_v,col_v,ph);
-
+     uint16_t num = ParseData(data,tbmch,iroc,row_v,col_v,ph);
+     cout << " elements: " << iroc.size() << endl ;
      data.clear();
    }
  }//roc
@@ -1229,25 +1233,31 @@ CMD_PROC(modalive)
 
  for(int a = 0 ; a < 16 ; a++)
  {
-        char szRoc[16];
+        char szRoc[10];
         sprintf(szRoc,"hROC%d",a);
         hROCS[a] = new TH2I(szRoc,szRoc,52,0,52,80,0,80);
-
         cout << "Init Histos" << hROCS[a] << endl;
 
-	unsigned int size = iroc.size();
 
-        for(int idx  = 0 ; idx < size; idx++)
-             hROCS[iroc[idx]]->Fill(col_v[idx],row_v[idx],ph[idx]);
-        
+ }
+ unsigned int vsize = iroc.size();
+ cout << "Total " << vsize << endl; 
+
+ for(int idx = 0 ; idx < vsize; idx++){
+       //cout << idx << " Fill " << iroc[idx] << " " << col_v[idx] << " " << row_v[idx] << " " << ph[idx] << endl;        
+       hROCS[iroc[idx]]->Fill(row_v[idx],col_v[idx],ph[idx]);
+ }
+ 	//cout << "Finished Fill " << endl;
+
 	//TCanvas c1;
         //c1.cd();
-        f.cd();
+ f.cd();
   
-        hROCS[a]->SetDrawOption("colz");
-        hROCS[a]->Draw();
+ for(int a = 0 ; a < 16 ; a++)
+ {  
+    hROCS[a]->SetDrawOption("colz");
+    hROCS[a]->Draw();
         //hROCS[a]->Write();
-
  }
  f.Write();
  f.Close();
