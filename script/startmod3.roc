@@ -57,7 +57,7 @@ dac   7  60  VwllPr
 dac   9  60  VwllPr
 dac  10 117  VhldDel
 dac  11  40  Vtrim
-dac  12  100  VthrComp
+dac  12  20  VthrComp
 
 dac  13  30  VIBias_Bus
 dac  14   6  Vbias_sf
