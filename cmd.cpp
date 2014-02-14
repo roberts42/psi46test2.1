@@ -1188,7 +1188,8 @@ CMD_PROC(modalive)
  tb.Daq_Select_Deser400();
  tb.Daq_Deser400_Reset(3);
 
- for( size_t roc = 0; roc < 16; ++roc ) {
+ for( size_t roc = 0; roc < 16 ; ++roc ) {
+
 
  //  if( roclist[roc] == 0 ) continue;
 
@@ -1199,7 +1200,7 @@ CMD_PROC(modalive)
 
    int tbmch = roc/8; // 0 or 1
 
-   tb.Daq_Open( 65000, tbmch );
+   tb.Daq_Open( 8000, tbmch );
 
    for( int row = 0; row < 80 ; ++row ) {
 
@@ -1209,29 +1210,39 @@ CMD_PROC(modalive)
         tb.roc_Pix_Trim( col, row, 0 );
         tb.roc_Pix_Cal( col, row, false );
      }
+     
 
      std::vectorR<uint16_t> data;
 
      tb.Daq_Start(tbmch);
-     tb.uDelay(100);
+     tb.uDelay(1100);
 
      tb.Pg_Single();
-     tb.uDelay(200);
+     tb.uDelay(1200);
 
      tb.Daq_Stop(tbmch);
 
-     tb.roc_Chip_Mask();
 
     cout << setw(2) << row << ": DAQ size " << tb.Daq_GetSize( tbmch ) << endl;
 
      uint32_t remaining = 0;
      tb.Daq_Read( data, 32000, remaining, tbmch );
 
+     cout << " Remaining " << remaining << endl;
+
+     for( int col = 0; col < 52; ++col )
+         tb.roc_Pix_Mask( col, row );
+
+     tb.roc_ClrCal();
+
+     //tb.roc_Chip_Mask();
 
      uint16_t num = ParseData(data,tbmch,iroc,row_v,col_v,ph);
      cout << " elements: " << iroc.size() << endl ;
      data.clear();
    }
+   tb.Daq_Close(tbmch);
+
  }//roc
 
  //Make plots
@@ -1253,7 +1264,7 @@ CMD_PROC(modalive)
 
  for(int idx = 0 ; idx < vsize; idx++){
        //cout << idx << " Fill " << iroc[idx] << " " << col_v[idx] << " " << row_v[idx] << " " << ph[idx] << endl;        
-       hROCS[iroc[idx]]->Fill(row_v[idx],col_v[idx],ph[idx]);
+       if(iroc[idx] < 16 ) hROCS[iroc[idx]]->Fill(row_v[idx],col_v[idx],ph[idx]);
  }
  	//cout << "Finished Fill " << endl;
 
