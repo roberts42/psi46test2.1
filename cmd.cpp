@@ -1091,7 +1091,11 @@ CMD_PROC(errortest)
 
     PAR_INT(iterations,1,10000000);
     
-    tb.roc_Chip_Mask();
+    for(int x = 0 ; x < 16 ; x++)
+    {
+	tb.roc_I2cAddr(x);
+        tb.roc_Chip_Mask();
+    }
 
     tb.roc_I2cAddr(9);
 
@@ -1189,6 +1193,8 @@ CMD_PROC(modalive)
  //  if( roclist[roc] == 0 ) continue;
 
    tb.roc_I2cAddr(roc);
+   tb.roc_Chip_Mask();
+   
    cout << endl << setw(2) << "ROC " << roc << endl;
 
    int tbmch = roc/8; // 0 or 1
