@@ -32,7 +32,7 @@ modsel 0
 
 tbmset $E4 $F0    Init TBM, Reset ROC
 tbmset $F4 $F0
-tbmset $E0 $40    Disable PKAM Counter
+tbmset $E0 $00    Disable PKAM Counter
 tbmset $F0 $00
 tbmset $E2 $C0    Mode = Calibration
 tbmset $F2 $C0
@@ -57,7 +57,7 @@ dac   7  60  VwllPr
 dac   9  60  VwllPr
 dac  10 117  VhldDel
 dac  11  40  Vtrim
-dac  12  70  VthrComp
+dac  12  100  VthrComp
 
 dac  13  30  VIBias_Bus
 dac  14   6  Vbias_sf
@@ -70,7 +70,7 @@ dac  18 115  VIon
 dac  19  50  Vcomp_ADC 100
 dac  20  70  VIref_ADC 160
 
-dac  25  170  Vcal
+dac  25  200  Vcal
 dac  26  68  CalDel
 
 dac  $fe 45  WBC
