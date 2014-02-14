@@ -1090,6 +1090,8 @@ CMD_PROC(errortest)
     int iterations;
 
     PAR_INT(iterations,1,10000000);
+    
+    tb.roc_Chip_Mask();
 
     tb.roc_I2cAddr(9);
 
