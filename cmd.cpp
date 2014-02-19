@@ -970,14 +970,15 @@ CMD_PROC(dread400) // for modules
  tb.Daq_Read( data, 32000, words_remaining, channel );
  int size = data.size();
  printf( "words read %i, remaining %i\n", size, words_remaining );
+ Log.printf( "words read %i, remaining %i\n", size, words_remaining );
 
  for( int i = 0; i < size; i++ ) {
    int x = data[i] & 0xffff;
    char s[20];
    HexToBin(x,s);
 
-   printf( " %X = %s\n", x,s );
-   Log.printf( " %X", x );
+   Log.printf( " %X = %s\n", x,s );
+   //Log.printf( " %X", x );
    if( i%16 == 15 ) printf("\n");
    if( i%16 == 15 ) Log.printf("\n");
  }
