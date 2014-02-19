@@ -958,6 +958,17 @@ CMD_PROC(dreset)
   return true;
 }
 
+CMD_PROC(maskall)
+{
+
+   for (int x = 0 ; x < 16 ; x++)
+   {
+   	tb.roc_I2cAddr(x);
+   	tb.roc_Chip_Mask();
+   }
+}
+
+
 //------------------------------------------------------------------------------
 CMD_PROC(dread400) // for modules
 {
@@ -4063,6 +4074,7 @@ void cmd()
 	CMD_REG(deser160, "deser160                      allign deser160");
 	CMD_REG(dsel, "dsel");
 	CMD_REG(dread400,"dread400");
+	CMD_REG(maskall,"maskall");
 	CMD_REG(modcaldel, "modcaldel");
 	CMD_REG(adcmap,"adcmap");
 	CMD_REG(dreset,"dreset");
