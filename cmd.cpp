@@ -1108,6 +1108,7 @@ CMD_PROC(errortest)
     {
 	tb.roc_I2cAddr(x);
         tb.roc_Chip_Mask();
+        tb.roc_ClrCal();
     }
 
     tb.roc_I2cAddr(roc);
@@ -1183,6 +1184,7 @@ CMD_PROC(errortest)
         ph.clear();
 
      }
+     tb.roc_ClrCal();
 
      tb.Daq_Stop(1);
 
@@ -1208,6 +1210,8 @@ CMD_PROC(modalive)
 
    tb.roc_I2cAddr(roc);
    tb.roc_Chip_Mask();
+   
+   tb.roc_ClrCal();
    
    cout << endl << setw(2) << "ROC " << roc << endl;
 
