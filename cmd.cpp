@@ -1109,7 +1109,7 @@ CMD_PROC(errortest)
         tb.roc_Chip_Mask();
     }
 
-    tb.roc_I2cAddr(9);
+    tb.roc_I2cAddr(0);
 
   
         for(int row = 30 ; row < 40 ; row++)
