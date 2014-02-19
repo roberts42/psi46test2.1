@@ -1099,9 +1099,10 @@ CMD_PROC(errortest)
     tb.Daq_Deser400_Reset(3);
 
     std::vectorR<uint16_t> data;
-    int iterations;
+    int iterations,roc;
 
     PAR_INT(iterations,1,10000000);
+    PAR_INT(roc,0,15);
     
     for(int x = 0 ; x < 16 ; x++)
     {
@@ -1109,7 +1110,7 @@ CMD_PROC(errortest)
         tb.roc_Chip_Mask();
     }
 
-    tb.roc_I2cAddr(0);
+    tb.roc_I2cAddr(roc);
 
   
         for(int row = 30 ; row < 40 ; row++)
