@@ -976,7 +976,7 @@ CMD_PROC(dread400) // for modules
  if( !PAR_IS_INT(channel, 0, 7) ) channel = 0;
 
  uint32_t words_remaining = 0;
- vector<uint16_t> data;
+ vectorR<uint16_t> data;
 
  tb.Daq_Read( data, 32000, words_remaining, channel );
  int size = data.size();
@@ -989,6 +989,7 @@ CMD_PROC(dread400) // for modules
    HexToBin(x,s);
 
    Log.printf( " %X = %s\n", x,s );
+   printf( " %X = %s\n", x,s );
    //Log.printf( " %X", x );
    if( i%16 == 15 ) printf("\n");
    if( i%16 == 15 ) Log.printf("\n");
@@ -1110,6 +1111,7 @@ CMD_PROC(errortest)
         tb.roc_Chip_Mask();
         tb.roc_ClrCal();
     }
+    int tbmch = roc/8; // 0 or 1
 
     tb.roc_I2cAddr(roc);
 
@@ -1130,9 +1132,9 @@ CMD_PROC(errortest)
      uint32_t pixels = 0;
      uint32_t errors = 0;
 
-     tb.Daq_Open(10000,1);
+     tb.Daq_Open(10000,tbmch);
 
-     tb.Daq_Start(1);
+     tb.Daq_Start(tbmch);
      tb.uDelay(100);
 
      for(int it = 0 ; it < iterations ; it ++)
@@ -1142,7 +1144,7 @@ CMD_PROC(errortest)
 
         uint32_t remaining = 0;
 
-        tb.Daq_Read( data, 32000, remaining ,1 );
+        tb.Daq_Read( data, 32000, remaining ,tbmch );
 
         int size = data.size();
 
@@ -1186,9 +1188,9 @@ CMD_PROC(errortest)
      }
      tb.roc_ClrCal();
 
-     tb.Daq_Stop(1);
+     tb.Daq_Stop(tbmch);
 
-     tb.Daq_Close();
+     tb.Daq_Close(tbmch);
 
      cout << "Pixels " << pixels << endl << "Errors " << errors << endl;
 
@@ -1390,7 +1392,7 @@ CMD_PROC(adcmap) // PH [ADC] map for a module
 {
  tb.Daq_Select_Deser400();
 
- vector<uint16_t> data;
+ vectorR<uint16_t> data;
 
  int npx[16] = {0};
  int modph[16][52][80] = {{{0}}};
@@ -1528,7 +1530,7 @@ CMD_PROC(dread)
 	if (!PAR_IS_INT(channel, 0, 7)) channel = 0;
 
 	uint32_t words_remaining = 0;
-	vector<uint16_t> data;
+	vectorR<uint16_t> data;
 //	int TBM_eventnr,TBM_stackinfo,ColAddr,RowAddr,PulseHeight,TBM_trailerBits,TBM_readbackData;
 
 	tb.Daq_Read(data, 4096, words_remaining, channel);
@@ -1588,7 +1590,7 @@ CMD_PROC(dread)
 CMD_PROC(dreada)
 {
 	uint32_t words_remaining = 0;
-	vector<uint16_t> data;
+	vectorR<uint16_t> data;
 	tb.Daq_Read(data, words_remaining);
 	int size = data.size();
 	printf("#samples: %i remaining: %i\n", size, int(words_remaining));
@@ -1625,7 +1627,7 @@ CMD_PROC(takedata)
 
 	uint8_t status = 0;
 	uint32_t n;
-	vector<uint16_t> data;
+	vectorR<uint16_t> data;
 
 	unsigned int sum = 0;
 	double mean_n = 0.0;
@@ -1690,9 +1692,9 @@ CMD_PROC(trimroc)
 	int32_t res[5000];
 
 	//dacReg vcal 0x19, vthrcomp 0x0C 
-	int32_t ret = tb.ChipThreshold(start, step, thrLevel, nTrig, 0x0C, 0, 1, res);
+	//int32_t ret = tb.ChipThreshold(start, step, thrLevel, nTrig, 0x0C, 0, 1, res);
 	
-	printf("Ret=%d\n",ret);
+	//printf("Ret=%d\n",ret);
 
 	for(int x = 0 ; x < 4160 ; x++)
 	{
@@ -1807,7 +1809,7 @@ CMD_PROC(takedata2)
 
 	uint8_t status = 0;
 	uint32_t n;
-	vector<uint16_t> data;
+	vectorR<uint16_t> data;
 
 	unsigned int sum = 0;
 	double mean_n = 0.0;
@@ -1866,7 +1868,7 @@ CMD_PROC(showclk)
 //	PAR_INT(gain,1,4);
 
 	unsigned int i, k;
-	vector<uint16_t> data[20];
+	vectorR<uint16_t> data[20];
 
 	tb.Pg_Stop();
 	tb.Pg_SetCmd( 0, PG_SYNC +  5);
@@ -1925,7 +1927,7 @@ CMD_PROC(showctr)
 //	PAR_INT(gain,1,4);
 
 	unsigned int i, k;
-	vector<uint16_t> data[20];
+	vectorR<uint16_t> data[20];
 
 	tb.Pg_Stop();
 	tb.Pg_SetCmd( 0, PG_SYNC +  5);
@@ -1995,7 +1997,7 @@ CMD_PROC(showsda)
 {
 	const unsigned int nSamples = 52;
 	unsigned int i, k;
-	vector<uint16_t> data[20];
+	vectorR<uint16_t> data[20];
 
 	tb.SignalProbeD1(9);
 	tb.SignalProbeD2(17);

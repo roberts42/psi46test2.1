@@ -117,7 +117,7 @@ void CTestboard::Close()
 	usb.Close();
 	Clear();
 }
-
+/*
 int32_t CTestboard::ChipThreshold(int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t xtalk, int32_t cals, int32_t res[])
 {
 	vectorR<int32_t> res_v;
@@ -137,7 +137,7 @@ int32_t CTestboard::ChipThreshold(int32_t start, int32_t step, int32_t thrLevel,
 
 	return val;
 }
-
+*/
 
 void CTestboard::mDelay(uint16_t ms)
 {

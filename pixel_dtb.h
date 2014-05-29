@@ -23,6 +23,9 @@
 
 #include "usb.h"
 
+
+
+
 // size of ROC pixel array
 #define ROC_NUMROWS  80  // # rows
 #define ROC_NUMCOLS  52  // # columns
@@ -61,6 +64,7 @@
 #define	WBC         0xFE
 #define	CtrlReg     0xFD
 
+template <class T> class HWvector;
 
 
 class CTestboard
@@ -90,6 +94,8 @@ public:
 
 	RPC_EXPORT int32_t GetRpcCallCount();
 	RPC_EXPORT bool    GetRpcCallName(int32_t id, stringR &callName);
+
+        RPC_EXPORT uint32_t GetRpcCallHash();
 
 	// === DTB connection ====================================================
 
@@ -121,7 +127,7 @@ public:
 	RPC_EXPORT void GetHWVersion(stringR &version);
 	RPC_EXPORT uint16_t GetFWVersion();
 	RPC_EXPORT uint16_t GetSWVersion();
-
+//	RPC_EXPORT uint16_t GetUser1Version();
 
 	// === DTB service ======================================================
 
@@ -150,7 +156,28 @@ public:
 	// select ROC/Module clock source
 	#define CLK_SRC_INT  0
 	#define CLK_SRC_EXT  1
-	RPC_EXPORT void SetClockSource(uint8_t source);
+RPC_EXPORT void SetClockSource(uint8_t source);
+ RPC_EXPORT bool IsClockPresent();
+
+        // --- set clock clock frequency (clock divider)
+        #define MHZ_1_25   5
+        #define MHZ_2_5    4
+        #define MHZ_5      3
+        #define MHZ_10     2
+        #define MHZ_20     1
+        #define MHZ_40     0  // default
+        RPC_EXPORT void SetClock(uint8_t MHz);
+
+        // --- set clock stretch
+        // width = 0 -> disable stretch
+        #define STRETCH_AFTER_TRG  0
+        #define STRETCH_AFTER_CAL  1
+        #define STRETCH_AFTER_RES  2
+        #define STRETCH_AFTER_SYNC 3
+        RPC_EXPORT void SetClockStretch(uint8_t src,
+                uint16_t delay, uint16_t width);
+
+
 
 
 	// --- Signal Delay -----------------------------------------------------
@@ -254,6 +281,7 @@ public:
 	RPC_EXPORT void SetRocAddress(uint8_t addr);
 
 
+
 	// --- pulse pattern generator ------------------------------------------
 	#define PG_TOK   0x0100
 	#define PG_TRG   0x0200
@@ -269,9 +297,7 @@ public:
 	RPC_EXPORT void Pg_Trigger();
 	RPC_EXPORT void Pg_Loop(uint16_t period);
 
-	RPC_EXPORT uint16_t GetUser1Version();
-
-
+	
 	// --- data aquisition --------------------------------------------------
 	RPC_EXPORT uint32_t Daq_Open(uint32_t buffersize = 10000000, uint8_t channel = 0);
 	RPC_EXPORT void Daq_Close(uint8_t channel = 0);
@@ -280,22 +306,23 @@ public:
 	RPC_EXPORT uint32_t Daq_GetSize(uint8_t channel = 0);
 
 	RPC_EXPORT uint8_t Daq_Read(vectorR<uint16_t> &data,
-			 uint16_t blocksize = 16384, uint8_t channel = 0);
+			 uint32_t blocksize = 16384, uint8_t channel = 0);
 
 	RPC_EXPORT uint8_t Daq_Read(vectorR<uint16_t> &data,
-			uint16_t blocksize, uint32_t &availsize, uint8_t channel = 0);
+			uint32_t blocksize, uint32_t &availsize, uint8_t channel = 0);
 
 
 	RPC_EXPORT void Daq_Select_ADC(uint16_t blocksize, uint8_t source,
 			uint8_t start, uint8_t stop = 0);
 
-	RPC_EXPORT void Daq_Select_Deser160(uint8_t shift);
+	RPC_EXPORT void Daq_Select_Deser160(uint8_t shift);	
 
 	RPC_EXPORT void Daq_Select_Deser400();
 	RPC_EXPORT void Daq_Deser400_Reset(uint8_t reset = 3);
 
+	RPC_EXPORT void Daq_Select_Datagenerator(uint16_t startvalue);
 	RPC_EXPORT void Daq_DeselectAll();
-
+	
 
 	// --- ROC Communication ------------------------------------------------
 	// -- set the i2c address for the following commands
@@ -331,6 +358,9 @@ public:
 
 
 	// --- TBM/module Communication -----------------------------------------
+
+        RPC_EXPORT bool TBM_Present();
+
 	RPC_EXPORT void tbm_Enable(bool on);
 
 	RPC_EXPORT void tbm_Addr(uint8_t hub, uint8_t port);
@@ -339,13 +369,15 @@ public:
 
 	RPC_EXPORT void tbm_Set(uint8_t reg, uint8_t value);
 
-//	RPC_EXPORT bool tbm_Get(uint8_t reg, uint8_t &value);
+	RPC_EXPORT bool tbm_Get(uint8_t reg, uint8_t &value);
 
-//	RPC_EXPORT bool tbm_GetRaw(uint8_t reg, uint32_t &value);
+	RPC_EXPORT bool tbm_GetRaw(uint8_t reg, uint32_t &value);
+
+        RPC_EXPORT bool GetPixelAddressInverted();
+        RPC_EXPORT void SetPixelAddressInverted(bool status);
+
 
 // --- ROC test functions
-
-	RPC_EXPORT void SetPixelAddressInverted(bool status);
 
 	RPC_EXPORT int32_t CountReadouts(int32_t nTriggers);
 	RPC_EXPORT int32_t CountReadouts(int32_t nTriggers, int32_t chipId);
@@ -353,19 +385,91 @@ public:
 	//RPC_EXPORT uint8_t DacDac_dtb(vectorR<uint16_t> &res, int32_t dac1, int32_t dacRange1, int32_t dac2, int32_t dacRange2, int32_t nTrig);
 	RPC_EXPORT int32_t PH(int32_t col, int32_t row, int32_t trim, int16_t nTriggers);
 	//int32_t ThresholdBinary(int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t dacMin, int32_t dacMax, bool reverseMode);
-	int32_t Threshold(int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg);
+//	int32_t Threshold(int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg);
 	//bool FindReadout(int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t &dacMin, int32_t &dacMax, bool reverseMode);
-	RPC_EXPORT int32_t PixelThreshold(int32_t col, int32_t row, int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t xtalk, int32_t cals, int32_t trim);
+//	RPC_EXPORT int32_t PixelThreshold(int32_ col, int32_t row, int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t xtalk, int32_t cals, int32_t trim);
+        RPC_EXPORT int32_t PixelThreshold(int32_t col, int32_t row, int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, bool xtalk, bool cals);
+
 	RPC_EXPORT bool test_pixel_address(int32_t col, int32_t row);
-	//RPC_EXPORT int32_t ChipEfficiency(int16_t nTriggers, vectorR<uint8_t> &res);
+	//RPC_EXPORT int32_t ChipEfficiency_dtb(int16_t nTriggers, vectorR<uint8_t> &res);
+   RPC_EXPORT int8_t CalibratePixel(int16_t nTriggers, int16_t col, int16_t row, int16_t &nReadouts, int32_t &PHsum);
+	RPC_EXPORT int8_t CalibrateDacScan(int16_t nTriggers, int16_t col, int16_t row, int16_t dacReg1, int16_t dacLower1, int16_t dacUpper1, vectorR<int16_t>& nReadouts, vectorR<int32_t> &PHsum);
+	RPC_EXPORT int8_t CalibrateDacDacScan(int16_t nTriggers, int16_t  col, int16_t  row, int16_t  dacReg1, int16_t  dacLower1, int16_t  dacUpper1, int16_t  dacReg2, int16_t  dacLower2, int16_t  dacUpper2, vectorR<int16_t> &nReadouts, vectorR<int32_t> &PHsum);
+	//RPC_EXPORT int16_t CalibrateMap(int16_t nTriggers, vectorR<int16_t> &nReadouts, vectorR<int32_t> &PHsum, vectorR<uint32_t> &address);
+	RPC_EXPORT int16_t TrimChip(vector<int16_t> &trim);
 
-	int32_t ChipThreshold(int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, int32_t xtalk, int32_t cals, int32_t res[]);
-        RPC_EXPORT int32_t ChipThresholdConvert(int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, bool xtalk, bool cals, vectorR<int32_t> &res);
+//        RPC_EXPORT int32_t ChipThresholdConvert(int32_t start, int32_t step, int32_t thrLevel, int32_t nTrig, int32_t dacReg, bool xtalk, bool cals, vectorR<int32_t> &res);
 
-	// Wafer test functions
-	RPC_EXPORT bool TestColPixel(uint8_t col, uint8_t trimbit, vectorR<uint8_t> &res);
 
-	// Ethernet test functions
-	RPC_EXPORT void Ethernet_Send(string &message);
-	RPC_EXPORT uint32_t Ethernet_RecvPackets();
+
+        RPC_EXPORT int16_t CalibrateMap(int16_t nTriggers, vectorR<int16_t> &nReadouts, vectorR<int32_t> &PHsum, vectorR<uint32_t> &addres);
+        RPC_EXPORT int16_t TriggerRow(int16_t nTriggers, int16_t col, vector<int16_t> &rocs, int16_t delay=4);
+
+        // Wafer test functions
+        RPC_EXPORT bool TestColPixel(uint8_t col, uint8_t trimbit, vectorR<uint8_t> &res);
+
+        // Ethernet test functions
+        bool Ethernet_Init();
+        RPC_EXPORT void Ethernet_Send(string &message);
+        RPC_EXPORT uint32_t Ethernet_RecvPackets();
+
+
+
+
+
+
+
+	// == Trigger Loop functions for Host-side DAQ ROC/Module testing ==============
+	// Exported RPC-Calls for Maps
+	RPC_EXPORT void LoopMultiRocAllPixelsCalibrate(vector<uint8_t> &roc_i2c, uint16_t nTriggers, uint16_t flags);
+	RPC_EXPORT void LoopMultiRocOnePixelCalibrate(vector<uint8_t> &roc_i2c, uint8_t column, uint8_t row, uint16_t nTriggers, uint16_t flags);
+	RPC_EXPORT void LoopSingleRocAllPixelsCalibrate(uint8_t roc_i2c, uint16_t nTriggers, uint16_t flags);
+	RPC_EXPORT void LoopSingleRocOnePixelCalibrate(uint8_t roc_i2c, uint8_t column, uint8_t row, uint16_t nTriggers, uint16_t flags);
+	  
+	// Exported RPC-Calls for 1D DacScans
+	RPC_EXPORT void LoopMultiRocAllPixelsDacScan(vector<uint8_t> &roc_i2c, uint16_t nTriggers, uint16_t flags, uint8_t dac1register, uint8_t dac1low, uint8_t dac1high);
+	RPC_EXPORT void LoopMultiRocOnePixelDacScan(vector<uint8_t> &roc_i2c, uint8_t column, uint8_t row, uint16_t nTriggers, uint16_t flags, uint8_t dac1register, uint8_t dac1low, uint8_t dac1high);
+	RPC_EXPORT void LoopSingleRocAllPixelsDacScan(uint8_t roc_i2c, uint16_t nTriggers, uint16_t flags, uint8_t dac1register, uint8_t dac1low, uint8_t dac1high);
+	RPC_EXPORT void LoopSingleRocOnePixelDacScan(uint8_t roc_i2c, uint8_t column, uint8_t row, uint16_t nTriggers, uint16_t flags, uint8_t dac1register, uint8_t dac1low, uint8_t dac1high);
+
+	// Exported RPC-Calls for 2D DacDacScans
+	RPC_EXPORT void LoopMultiRocAllPixelsDacDacScan(vector<uint8_t> &roc_i2c, uint16_t nTriggers, uint16_t flags, uint8_t dac1register, uint8_t dac1low, uint8_t dac1high, uint8_t dac2register, uint8_t dac2low, uint8_t dac2high);
+	RPC_EXPORT void LoopMultiRocOnePixelDacDacScan(vector<uint8_t> &roc_i2c, uint8_t column, uint8_t row, uint16_t nTriggers, uint16_t flags, uint8_t dac1register, uint8_t dac1low, uint8_t dac1high, uint8_t dac2register, uint8_t dac2low, uint8_t dac2high);
+	RPC_EXPORT void LoopSingleRocAllPixelsDacDacScan(uint8_t roc_i2c, uint16_t nTriggers, uint16_t flags, uint8_t dac1register, uint8_t dac1low, uint8_t dac1high, uint8_t dac2register, uint8_t dac2low, uint8_t dac2high);
+	RPC_EXPORT void LoopSingleRocOnePixelDacDacScan(uint8_t roc_i2c, uint8_t column, uint8_t row, uint16_t nTriggers, uint16_t flags, uint8_t dac1register, uint8_t dac1low, uint8_t dac1high, uint8_t dac2register, uint8_t dac2low, uint8_t dac2high);
+
+        RPC_EXPORT void VectorTest(vector<uint16_t> &in, vectorR<uint16_t> &out);
+
+	RPC_EXPORT int16_t ROCTrim( int32_t trimval, int32_t nTrig, int32_t dacReg, bool rising, bool xtalk, bool cals, vectorR<int16_t> &thresholds, vectorR<int16_t> &trimbits);
+
 };
+
+/*
+
+template <class T>
+class HWvector
+{
+        uint16_t *p1;
+        uint32_t s1;
+        uint16_t *p2;
+        uint32_t s2;
+
+        uint32_t base;
+        uint32_t rp;
+public:
+        HWvector() {}
+        ~HWvector() { tb.Daq_Read_DeleteData(base, rp); }
+        void Write(rpcMessage &msg, uint32_t &hdr);
+        friend class CTestboard;
+};
+
+template <class T>
+void HWvector<T>::Write(rpcMessage &msg, uint32_t &hdr)
+{
+        uint32_t size = (s1 + s2)*sizeof(uint16_t);
+        hdr = (size << 8) + RPC_TYPE_DTB_DATA;
+        msg.GetIo().Write(&hdr, sizeof(uint32_t));
+        if (s1) msg.GetIo().Write(p1, s1*sizeof(uint16_t));
+        if (s2) msg.GetIo().Write(p2, s2*sizeof(uint16_t));
+}
+*/
